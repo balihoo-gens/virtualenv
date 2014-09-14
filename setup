@@ -1,0 +1,40 @@
+#!/bin/bash
+
+PYVERSION=2.7.7
+VEVERSION=1.11.6
+
+#setup python
+install_python() {
+    pushd .
+    SRCDIR=$(pwd)/python/src
+    BINDIR=$(pwd)/python/bin
+    mkdir -p ${SRCDIR} ${BINDIR}
+    if [[ -d ${SRCDIR}  && -d ${BINDIR} ]]; then
+        cd ${SRCDIR}
+        curl -O http://www.python.org/ftp/python/${PYVERSION}/Python-${PYVERSION}.tgz
+        tar -zxvf Python-${PYVERSION}.tar.gz
+        cd Python-${PYVERSION}
+        ./configure --prefix=${BINDIR}
+        make && make install
+    fi
+    popd
+}
+
+#setup virtualenv
+install_virtualenv() {
+    cd ~/src
+    curl -O http://pypi.python.org/packages/source/v/virtualenv/virtualenv-${VEVERSION}.tar.gz
+    tar -zxvf virtualenv-${VEVERSION}.tar.gz
+    cd virtualenv-${VEVERSION}/
+    ~/.localpython/bin/python setup.py install
+    virtualenv ve -p /home/<user>/.localpython/bin/python2.7
+    source ve/bin/activate
+}
+
+#setup boto
+
+
+pushd .
+mkdir -p src
+install_python
+
