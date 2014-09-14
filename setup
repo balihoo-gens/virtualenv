@@ -1,40 +1,60 @@
 #!/bin/bash
+#http://stackoverflow.com/a/11301911/1705163
 
 PYVERSION=2.7.7
 VEVERSION=1.11.6
 
+DEST=$(pwd)
+if [ -n "$1" ]; then
+    #does not require the dir to exist
+    DEST=$(realpath "$1")
+fi
+
 #setup python
 install_python() {
     pushd .
-    SRCDIR=$(pwd)/python/src
-    BINDIR=$(pwd)/python/bin
+    local SRCDIR=${DEST}/python/src
+    local BINDIR=${DEST}/python/bin
     mkdir -p ${SRCDIR} ${BINDIR}
     if [[ -d ${SRCDIR}  && -d ${BINDIR} ]]; then
         cd ${SRCDIR}
-        curl -O http://www.python.org/ftp/python/${PYVERSION}/Python-${PYVERSION}.tgz
-        tar -zxvf Python-${PYVERSION}.tar.gz
+        local TARBALL=Python-${PYVERSION}.tgz
+        curl -O https://www.python.org/ftp/python/${PYVERSION}/$TARBALL
+        tar -zxvf $TARBALL
         cd Python-${PYVERSION}
         ./configure --prefix=${BINDIR}
-        make && make install
+        make > /dev/null 2>&1
+        make install > /dev/null 2>&1
+        echo "${BINDIR}"
     fi
     popd
 }
 
 #setup virtualenv
 install_virtualenv() {
-    cd ~/src
-    curl -O http://pypi.python.org/packages/source/v/virtualenv/virtualenv-${VEVERSION}.tar.gz
-    tar -zxvf virtualenv-${VEVERSION}.tar.gz
-    cd virtualenv-${VEVERSION}/
-    ~/.localpython/bin/python setup.py install
-    virtualenv ve -p /home/<user>/.localpython/bin/python2.7
-    source ve/bin/activate
+    pushd .
+    local PYDIR=$1
+    local SRCDIR=$DEST/virtualenv/src
+    local VEDIR=$DEST/virtualenv/ve
+    local BINDIR=$VEDIR/bin
+    mkdir -p ${SRCDIR} ${BINDIR}
+    if [[ -d ${SRCDIR}  && -d ${BINDIR} ]]; then
+        cd ${SRCDIR}
+        local TARBALL=virtualenv-${VEVERSION}.tar.gz
+        curl -O https://pypi.python.org/packages/source/v/virtualenv/$TARBALL
+        tar -zxvf $TARBALL
+        cd virtualenv-${VEVERSION}
+        $PYDIR/python setup.py install
+        virtualenv $VEDIR -p $PYDIR/python
+        source $BINDIR/activate
+    fi
 }
 
-#setup boto
+#TODO setup boto
 
-
-pushd .
-mkdir -p src
-install_python
+#run the installation
+echo "Installing Python..."
+PYTHONDIR=$(install_python)
+echo "Installing Virtualenv..."
+install_virtualenv $PYTHONDIR
 
