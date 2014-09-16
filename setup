@@ -15,14 +15,14 @@ install_python() {
     pushd .
     local SRCDIR=$DEST/python/src
     local INSTALLDIR=$DEST/python/install
-    mkdir -p ${SRCDIR} $INSTALLDIR
-    if [[ -d ${SRCDIR}  && -d ${INSTALLDIR} ]]; then
-        cd ${SRCDIR}
-        local TARBALL=Python-${PYVERSION}.tgz
-        curl -O https://www.python.org/ftp/python/${PYVERSION}/$TARBALL
+    mkdir -p $SRCDIR $INSTALLDIR
+    if [[ -d $SRCDIR  && -d $INSTALLDIR ]]; then
+        cd $SRCDIR
+        local TARBALL=Python-$PYVERSION.tgz
+        curl -O https://www.python.org/ftp/python/$PYVERSION/$TARBALL
         tar -zxvf $TARBALL
-        cd Python-${PYVERSION}
-        ./configure --prefix=${INSTALLDIR}
+        cd Python-$PYVERSION
+        ./configure --prefix=$INSTALLDIR > /dev/null 2>&1
         make > /dev/null 2>&1
         make install > /dev/null 2>&1
         PYTHON=$INSTALLDIR/bin/python
@@ -34,29 +34,30 @@ install_python() {
 install_virtualenv() {
     pushd .
     local SRCDIR=$DEST/virtualenv/src
-    local INSTALLDIR=${DEST}/virtualenv/install
-    mkdir -p ${SRCDIR} ${INSTALLDIR}
-    if [[ -d ${SRCDIR}  && -d ${INSTALLDIR} ]]; then
-        cd ${SRCDIR}
-        local TARBALL=virtualenv-${VEVERSION}.tar.gz
+    local INSTALLDIR=$DEST/virtualenv/install
+    mkdir -p $SRCDIR $INSTALLDIR
+    if [[ -d $SRCDIR  && -d $INSTALLDIR ]]; then
+        cd $SRCDIR
+        local TARBALL=virtualenv-$VEVERSION.tar.gz
         curl -O https://pypi.python.org/packages/source/v/virtualenv/$TARBALL
         tar -zxvf $TARBALL
-        cd virtualenv-${VEVERSION}
+        cd virtualenv-$VEVERSION
         if [ -v $PYTHON ]; then
             echo "no python: $PYTHON"
         else
             $PYTHON setup.py install
             virtualenv $INSTALLDIR -p $PYTHON
+            #activate so that any python / pip runs in this python
             source $INSTALLDIR/bin/activate
         fi
     fi
+    popd
 }
-
-#TODO setup boto
 
 #run the installation
 echo "Installing Python..."
 install_python
 echo "Installing Virtualenv..."
 install_virtualenv
-
+echo "installing boto..."
+pip install boto
