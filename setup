@@ -13,19 +13,19 @@ fi
 #setup python
 install_python() {
     pushd .
-    local SRCDIR=${DEST}/python/src
-    local BINDIR=${DEST}/python/bin
-    mkdir -p ${SRCDIR} ${BINDIR}
-    if [[ -d ${SRCDIR}  && -d ${BINDIR} ]]; then
+    local SRCDIR=$DEST/python/src
+    local INSTALLDIR=$DEST/python/install
+    mkdir -p ${SRCDIR} $INSTALLDIR
+    if [[ -d ${SRCDIR}  && -d ${INSTALLDIR} ]]; then
         cd ${SRCDIR}
         local TARBALL=Python-${PYVERSION}.tgz
         curl -O https://www.python.org/ftp/python/${PYVERSION}/$TARBALL
         tar -zxvf $TARBALL
         cd Python-${PYVERSION}
-        ./configure --prefix=${BINDIR}
+        ./configure --prefix=${INSTALLDIR}
         make > /dev/null 2>&1
         make install > /dev/null 2>&1
-        echo "${BINDIR}"
+        PYTHON=$INSTALLDIR/bin/python
     fi
     popd
 }
@@ -33,20 +33,22 @@ install_python() {
 #setup virtualenv
 install_virtualenv() {
     pushd .
-    local PYDIR=$1
     local SRCDIR=$DEST/virtualenv/src
-    local VEDIR=$DEST/virtualenv/ve
-    local BINDIR=$VEDIR/bin
-    mkdir -p ${SRCDIR} ${BINDIR}
-    if [[ -d ${SRCDIR}  && -d ${BINDIR} ]]; then
+    local INSTALLDIR=${DEST}/virtualenv/install
+    mkdir -p ${SRCDIR} ${INSTALLDIR}
+    if [[ -d ${SRCDIR}  && -d ${INSTALLDIR} ]]; then
         cd ${SRCDIR}
         local TARBALL=virtualenv-${VEVERSION}.tar.gz
         curl -O https://pypi.python.org/packages/source/v/virtualenv/$TARBALL
         tar -zxvf $TARBALL
         cd virtualenv-${VEVERSION}
-        $PYDIR/python setup.py install
-        virtualenv $VEDIR -p $PYDIR/python
-        source $BINDIR/activate
+        if [ -v $PYTHON ]; then
+            echo "no python: $PYTHON"
+        else
+            $PYTHON setup.py install
+            virtualenv $INSTALLDIR -p $PYTHON
+            source $INSTALLDIR/bin/activate
+        fi
     fi
 }
 
@@ -54,7 +56,7 @@ install_virtualenv() {
 
 #run the installation
 echo "Installing Python..."
-PYTHONDIR=$(install_python)
+install_python
 echo "Installing Virtualenv..."
-install_virtualenv $PYTHONDIR
+install_virtualenv
 
