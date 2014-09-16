@@ -48,7 +48,7 @@ install_virtualenv() {
             $PYTHON setup.py install > /dev/null 2>&1
             virtualenv $INSTALLDIR -p $PYTHON > /dev/null 2>&1
             #activate so that any python / pip runs in this python
-            $ACTIVATE=$DEST/activate
+            ACTIVATE=$DEST/activate
             ln -s $ACTIVATE $INSTALLDIR/bin/activate
             source $ACTIVATE
             echo $ACTIVATE
