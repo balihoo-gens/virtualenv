@@ -20,7 +20,7 @@ install_python() {
         cd $SRCDIR
         local TARBALL=Python-$PYVERSION.tgz
         curl -O https://www.python.org/ftp/python/$PYVERSION/$TARBALL
-        tar -zxvf $TARBALL
+        tar -zxvf $TARBALL > /dev/null 2>&1
         cd Python-$PYVERSION
         ./configure --prefix=$INSTALLDIR > /dev/null 2>&1
         make > /dev/null 2>&1
@@ -40,15 +40,18 @@ install_virtualenv() {
         cd $SRCDIR
         local TARBALL=virtualenv-$VEVERSION.tar.gz
         curl -O https://pypi.python.org/packages/source/v/virtualenv/$TARBALL
-        tar -zxvf $TARBALL
+        tar -zxvf $TARBALL > /dev/null 2>&1
         cd virtualenv-$VEVERSION
         if [ -v $PYTHON ]; then
             echo "no python: $PYTHON"
         else
-            $PYTHON setup.py install
-            virtualenv $INSTALLDIR -p $PYTHON
+            $PYTHON setup.py install > /dev/null 2>&1
+            virtualenv $INSTALLDIR -p $PYTHON > /dev/null 2>&1
             #activate so that any python / pip runs in this python
-            source $INSTALLDIR/bin/activate
+            $ACTIVATE=$DEST/activate
+            ln -s $ACTIVATE $INSTALLDIR/bin/activate
+            source $ACTIVATE
+            echo $ACTIVATE
         fi
     fi
     popd
@@ -61,3 +64,10 @@ echo "Installing Virtualenv..."
 install_virtualenv
 echo "installing boto..."
 pip install boto
+
+python -c "
+import boto
+print(boto.Version)
+"
+
+deactivate
