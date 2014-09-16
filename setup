@@ -49,7 +49,7 @@ install_virtualenv() {
             virtualenv $INSTALLDIR -p $PYTHON > /dev/null 2>&1
             #activate so that any python / pip runs in this python
             ACTIVATE=$DEST/activate
-            ln -s $ACTIVATE $INSTALLDIR/bin/activate
+            ln -s $INSTALLDIR/bin/activate $ACTIVATE
             source $ACTIVATE
             echo $ACTIVATE
         fi
