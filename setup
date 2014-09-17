@@ -6,8 +6,16 @@ VEVERSION=1.11.6
 
 DEST=$(pwd)
 if [ -n "$1" ]; then
-    #does not require the dir to exist
-    DEST=$(realpath "$1")
+    #realpath does not require the dir to exist
+    if hash realpath 2>/dev/null; then
+        DEST=$(realpath "$1")
+    else
+        if [ "${1:0:1}" == "/" ]; then
+            DEST=$1
+        else
+            DEST=$PWD/$1
+        fi
+    fi
 fi
 
 #setup python
@@ -42,9 +50,7 @@ install_virtualenv() {
         curl -O https://pypi.python.org/packages/source/v/virtualenv/$TARBALL
         tar -zxvf $TARBALL > /dev/null 2>&1
         cd virtualenv-$VEVERSION
-        if [ -v $PYTHON ]; then
-            echo "no python: $PYTHON"
-        else
+        if [ -v PYTHON ]; then
             $PYTHON setup.py install > /dev/null 2>&1
             virtualenv $INSTALLDIR -p $PYTHON > /dev/null 2>&1
             #activate so that any python / pip runs in this python
@@ -52,6 +58,8 @@ install_virtualenv() {
             ln -s $INSTALLDIR/bin/activate $ACTIVATE
             source $ACTIVATE
             echo $ACTIVATE
+        else
+            echo "no python: $PYTHON"
         fi
     fi
     popd
