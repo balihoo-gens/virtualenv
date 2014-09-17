@@ -53,8 +53,7 @@ install_virtualenv() {
         if [ -z "$PYTHON" ]; then
             echo "no python: $PYTHON"
         else
-            $PYTHON setup.py install > /dev/null 2>&1
-            virtualenv $INSTALLDIR -p $PYTHON > /dev/null 2>&1
+            $PYTHON virtualenv.py $INSTALLDIR -p $PYTHON
             #activate so that any python / pip runs in this python
             ACTIVATE=$DEST/activate
             ln -s $INSTALLDIR/bin/activate $ACTIVATE
