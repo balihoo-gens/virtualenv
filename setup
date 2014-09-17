@@ -50,7 +50,9 @@ install_virtualenv() {
         curl -O https://pypi.python.org/packages/source/v/virtualenv/$TARBALL
         tar -zxvf $TARBALL > /dev/null 2>&1
         cd virtualenv-$VEVERSION
-        if [ -v PYTHON ]; then
+        if [ -z "$PYTHON" ]; then
+            echo "no python: $PYTHON"
+        else
             $PYTHON setup.py install > /dev/null 2>&1
             virtualenv $INSTALLDIR -p $PYTHON > /dev/null 2>&1
             #activate so that any python / pip runs in this python
@@ -58,8 +60,6 @@ install_virtualenv() {
             ln -s $INSTALLDIR/bin/activate $ACTIVATE
             source $ACTIVATE
             echo $ACTIVATE
-        else
-            echo "no python: $PYTHON"
         fi
     fi
     popd
