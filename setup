@@ -10,7 +10,7 @@ if [ -n "$1" ]; then
     #realpath does not require the dir to exist
     if hash realpath 2>/dev/null; then
         echo "using realpath"
-        DEST=$(realpath "$1")
+        DEST=$(realpath -s "$1")
     else
         if [ "${1:0:1}" == "/" ]; then
             echo "absolute path"
