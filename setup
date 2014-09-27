@@ -30,7 +30,7 @@ DEST=$(readlink -f $DIR)
 
 #setup python
 install_python() {
-    pushd .
+    pushd . > /dev/null
     local SRCDIR=$DEST/python/src
     local INSTALLDIR=$DEST/python/install
     mkdir -p $SRCDIR $INSTALLDIR
@@ -39,37 +39,44 @@ install_python() {
         local TARBALL=Python-$PYVERSION.tgz
         echo "downloading $TARBALL..."
         curl --silent -O https://www.python.org/ftp/python/$PYVERSION/$TARBALL
-        tar -zxvf $TARBALL > /dev/null 2>&1
+        tar -zxvf $TARBALL > /dev/null
         cd Python-$PYVERSION
-        ./configure --prefix=$INSTALLDIR > /dev/null 2>&1
+        ./configure --prefix=$INSTALLDIR > /dev/null
         echo "building Python-$PYVERSION..."
-        make > /dev/null 2>&1
-        make install > /dev/null 2>&1
+        make > /dev/null 2>&1 #also eat stderr; there are always warnings
+        make install > /dev/null
         PYTHON=$INSTALLDIR/bin/python
+    else
+        echo "unable to create $SRCDIR and/or $INSTALLDIR" >&2
+        exit 1
     fi
     popd
 }
 
 #setup virtualenv
 install_virtualenv() {
-    pushd .
+    pushd . > /dev/null
     local SRCDIR=$DEST/virtualenv/src
     local INSTALLDIR=$DEST/virtualenv/install
     mkdir -p $SRCDIR $INSTALLDIR
     if [[ -d $SRCDIR  && -d $INSTALLDIR ]]; then
         cd $SRCDIR
         local TARBALL=virtualenv-$VEVERSION.tar.gz
-        curl -O https://pypi.python.org/packages/source/v/virtualenv/$TARBALL
-        tar -zxvf $TARBALL > /dev/null 2>&1
+        curl --silent -O https://pypi.python.org/packages/source/v/virtualenv/$TARBALL
+        tar -zxvf $TARBALL > /dev/null
         cd virtualenv-$VEVERSION
         if [ -z "$PYTHON" ]; then
             echo "no python: $PYTHON" >&2
+            exit 1
         else
             $PYTHON virtualenv.py $INSTALLDIR -p $PYTHON
             #create a more convenient / findable activate link
             ACTIVATE=$DEST/activate
             ln -sf $INSTALLDIR/bin/activate $ACTIVATE
         fi
+    else
+        echo "unable to create $SRCDIR and/or $INSTALLDIR" >&2
+        exit 1
     fi
     popd
 }
@@ -82,13 +89,13 @@ fi
 
 if [ -d $DEST ]; then
   echo "skipping install: $DEST exists"
-  exit 1
+else
+  #run the installation
+  echo "Installing Python $PYVERSION..."
+  install_python
+  echo "Installing Virtualenv $VEVERSION..."
+  install_virtualenv
 fi
 
-#run the installation
-echo "Installing Python $PYVERSION..."
-install_python
-echo "Installing Virtualenv $VEVERSION..."
-install_virtualenv
 echo done
 exit 0
